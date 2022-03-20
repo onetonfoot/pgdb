@@ -10,11 +10,11 @@ use std::time::Duration;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "pgdb", about = "Postgres CLI")]
+#[structopt(name = "pgdb", about = "Postgres ")]
 struct Opt {
-    /// If persistent is false clean up files and directories on drop, otherwise keep them
+    /// If non-persistent delete files and directories on exit, otherwise keep them
     #[structopt(long)]
-    persistent: bool,
+    non_persistent: bool,
 
     /// Wether to print the access url to the stdout
     #[structopt(long)]
@@ -32,6 +32,10 @@ struct Opt {
     #[structopt(long, default_value = "postgres")]
     database: String,
 
+    /// Optional a directory to store posgres data
+    #[structopt(long, default_value = "data/db")]
+    data_dir: PathBuf,
+
     /// Optional a directory with migration scripts to apply
     #[structopt(long)]
     migration_dir: Option<PathBuf>,
@@ -48,12 +52,12 @@ async fn main() -> Result<(), anyhow::Error> {
 
     // Postgresql settings
     let pg_settings = PgSettings {
-        database_dir: PathBuf::from("data/db"),
+        database_dir: opt.data_dir,
         port: opt.port as i16,
         user: opt.user,
         password: opt.password,
         auth_method: PgAuthMethod::Plain,
-        persistent: opt.persistent,
+        persistent: !opt.non_persistent,
         timeout: Some(Duration::from_secs(15)),
         migration_dir: opt.migration_dir,
     };
@@ -101,8 +105,9 @@ async fn main() -> Result<(), anyhow::Error> {
         r.store(false, Ordering::SeqCst);
     })
     .expect("Error setting Ctrl-C handler");
-    println!("To exit press Ctrl-C...");
+    println!("Starting database, to exit press Ctrl-C...");
     while running.load(Ordering::SeqCst) {}
+    println!("\r");
     println!("Got it! Stopping DB...");
     pg.stop_db()
         .await
