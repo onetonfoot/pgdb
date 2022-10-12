@@ -1,6 +1,6 @@
 # Pgdb
 
-Pgdb is a single [binary](https://github.com/onetonfoot/pgdb/releases) that can be used to run a postgres database on any major platform.
+Pgdb is a single [binary](https://github.com/onetonfoot/pgdb/releases) that can be used to run a postgres database on any major platform, it is mostly used for testing purposes.
 
 ```
 # pgdb --help
